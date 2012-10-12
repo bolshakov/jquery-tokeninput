@@ -29,6 +29,7 @@ var DEFAULT_SETTINGS = {
     noResultsText: "No results",
     searchingText: "Searching...",
     deleteText: "&times;",
+    placeholderText: null,
     animateDropdown: true,
     theme: null,
     zindex: 999,
@@ -84,7 +85,8 @@ var DEFAULT_CLASSES = {
     selectedDropdownItem: "token-input-selected-dropdown-item",
     inputToken: "token-input-input-token",
     focused: "token-input-focused",
-    disabled: "token-input-disabled"
+    disabled: "token-input-disabled",
+    placeholder: "token-input-placeholder"
 };
 
 // Input box position "enum"
@@ -243,13 +245,25 @@ $.TokenList = function (input, url_or_data, settings) {
         .focus(function () {
             if ($(input).data("settings").disabled) {
                 return false;
-            } else
+            }
+            if (input_box.val() === $(input).data("settings").placeholderText) {
+                input_box
+                  .val('')
+                  .removeClass($(input).data("settings").classes.placeholder);
+            }
             if ($(input).data("settings").tokenLimit === null || $(input).data("settings").tokenLimit !== token_count) {
                 show_dropdown_hint();
             }
             token_list.addClass($(input).data("settings").classes.focused);
         })
         .blur(function () {
+            if ($(input).data("settings").placeholderText &&
+                !input_box.val() &&
+                !has_tokens()) {
+              input_box
+                .val($(input).data("settings").placeholderText)
+                .addClass($(input).data("settings").classes.placeholder);
+            }
             hide_dropdown();
             $(this).val("");
             token_list.removeClass($(input).data("settings").classes.focused);
@@ -558,6 +572,10 @@ $.TokenList = function (input, url_or_data, settings) {
           object[$(input).data("settings").tokenValue] = object[$(input).data("settings").propertyToSearch] = token;
           add_token(object);
         });
+    }
+
+    function has_tokens() {
+        return !!saved_tokens.length;
     }
 
     // Inner function to a token to the list
